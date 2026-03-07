@@ -20,3 +20,7 @@ library(jsonlite)
 library(phsopendata)
 
 Population_Projections <- get_resource(res_id = "7a9e74c9-8746-488b-8fba-0fad7c7866ea")
+
+Care_Home_Census_Health_Characteristics <- get_resource(res_id = "92ebf3df-2af4-4d73-9397-f5d6a6778da7")
+
+Care_Home_Census_Demographic_Characteristics <- get_resource(res_id = "39d2b480-2990-46a2-bd58-96aac41a032a")
