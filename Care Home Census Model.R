@@ -82,7 +82,7 @@ Utilisation <- Utilisation %>%
   ungroup()
 
 LatestRates <- Utilisation %>%
-  filter(Year == max(Year, na.rm = TRUE)) %>%
+  filter(Year == "2022")%>%
   select(Age, Sex, UtilisationRate)
 
 Forecast <- Population_Projections %>%
@@ -145,6 +145,13 @@ p3 <- Forecast %>%
 
 p3
 
+
+actuals <- Residents %>% 
+  group_by(Year)%>%
+  summarise(
+   Residents = sum(Residents, na.rm = TRUE)
+  )
+
 Forecast_All <- Forecast %>%
   group_by(Year) %>%
   summarise(
@@ -163,3 +170,55 @@ p_total <- plot_ly(
     xaxis = list(title = "Year"),
     yaxis = list(title = "Projected Residents")
   )
+
+p_total
+
+Forecast_Validate <- Forecast_All %>% 
+  left_join(actuals, by = "Year")
+
+Forecast_Plot <- Forecast_Validate %>%
+  select(Year, ProjectedResidents, Residents) %>%
+  pivot_longer(
+    cols = c(ProjectedResidents, Residents),
+    names_to = "Series",
+    values_to = "Value"
+  ) %>%
+  mutate(
+    Series = recode(Series,
+                    "Residents" = "Actual",
+                    "ProjectedResidents" = "Forecast")
+  )
+
+library(plotly)
+
+plot_ly(
+  Forecast_Plot,
+  x = ~Year,
+  y = ~Value,
+  color = ~Series,
+  type = "scatter",
+  mode = "lines+markers"
+) %>%
+  layout(
+    title = "Actual vs Forecast Care Home Residents (Age 65+)",
+    xaxis = list(title = "Year"),
+    yaxis = list(title = "Residents")
+  )
+
+
+Registered_Places <- get_resource(res_id = "04958b74-a351-4dc0-b8e4-cbc369372804") %>%
+  filter(
+    KeyStatistic == "Number of Registered Places",
+    MainClientGroup == "Older People Aged 65 and Older",
+    Sector == "All Sectors",
+    CA == "S92000003"
+  ) %>%
+  mutate(
+    Year = as.numeric(substr(as.character(Date),1,4))
+  ) %>%
+  select(Year, Value) %>%
+  rename(RegisteredPlaces = Value)
+
+CurrentPlaces <- Registered_Places %>%
+  filter(Year == 2022) %>%
+  pull(RegisteredPlaces)
